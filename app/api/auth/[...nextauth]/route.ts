@@ -1,4 +1,6 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from 'next-auth'
+import authOptions from '../../../../lib/configs/auth/authOptions'
+
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -32,5 +34,5 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+const handler = NextAuth(authOptions)
+export { handler as GET, handler as POST }
