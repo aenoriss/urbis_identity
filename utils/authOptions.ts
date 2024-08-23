@@ -1,15 +1,34 @@
 import { NextAuthOptions } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 
 export const authOptions: NextAuthOptions = {
-    providers: [
-        DiscordProvider({
-            clientId: process.env.CLIENT_ID as string,
-            clientSecret: process.env.CLIENT_SECRET as string,
-        }),
-    ],
-    session: {
-        strategy: "jwt",
-    },
     secret: process.env.NEXTAUTH_SECRET,
+  
+    providers: [
+      {
+        id: "worldcoin",
+        name: "Worldcoin",
+        type: "oauth",
+        wellKnown: "https://id.worldcoin.org/.well-known/openid-configuration",
+        authorization: { params: { scope: "openid" } },
+        clientId: process.env.WLD_CLIENT_ID,
+        clientSecret: process.env.WLD_CLIENT_SECRET,
+        idToken: true,
+        checks: ["state", "nonce", "pkce"],
+        profile(profile) {
+          return {
+            id: profile.sub,
+            name: profile.sub,
+            verificationLevel:
+              profile["https://id.worldcoin.org/v1"].verification_level,
+          };
+        },
+      },
+    ],
+    callbacks: {
+      async signIn({ user }) {
+        return true;
+      },
+    },
+    debug: process.env.NODE_ENV === "production",
+  };
 }
