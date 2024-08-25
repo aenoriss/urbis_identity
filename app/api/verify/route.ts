@@ -1,35 +1,28 @@
-import {
-  verifyCloudProof,
-  IVerifyResponse,
-  ISuccessResult,
-} from "@worldcoin/minikit-js";
-import { NextRequest, NextResponse } from "next/server";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { verifyCloudProof, IVerifyResponse } from "@worldcoin/minikit-js";
 
-interface IRequestPayload {
-  payload: ISuccessResult;
-  action: string;
-  signal: string | undefined;
-}
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
 
-export async function POST(req: NextRequest) {
-  const { payload, action, signal } = (await req.json()) as IRequestPayload;
-  const app_id = process.env.APP_ID as `app_${string}`;
-  const verifyRes = (await verifyCloudProof(
-    payload,
-    app_id,
-    action,
-    signal
-  )) as IVerifyResponse; // Wrapper on this
-  
-  console.log(verifyRes);
+  const { payload, action, signal } = req.body;
+  const app_id = process.env.WLD_APP_ID as `app_${string}`;
 
-  if (verifyRes.success) {
-    // This is where you should perform backend actions if the verification succeeds
-    // Such as, setting a user as "verified" in a database
-    return NextResponse.json({ verifyRes, status: 200 });
-  } else {
-    // This is where you should handle errors from the World ID /verify endpoint.
-    // Usually these errors are due to a user having already verified.
-    return NextResponse.json({ verifyRes, status: 400 });
+  if (!app_id) {
+    return res.status(500).json({ message: "WLD_APP_ID is not set" });
+  }
+
+  try {
+    const verifyRes = await verifyCloudProof(payload, app_id, action, signal) as IVerifyResponse;
+
+    if (verifyRes.success) {
+      return res.status(200).json({ success: true, message: "Verification successful" });
+    } else {
+      return res.status(400).json({ success: false, message: "Verification failed" });
+    }
+  } catch (error) {
+    console.error('Verification error:', error);
+    return res.status(500).json({ success: false, message: "An unexpected error occurred" });
   }
 }

@@ -1,6 +1,6 @@
 import { PayBlock } from "@/components/Pay";
 import { SignIn } from "@/components/SignIn";
-import { VerifyBlock } from "@/components/Verify";
+import WorldcoinVerificationPage from "@/components/Verify";
 
 export default function Home() {
   return (
@@ -8,6 +8,7 @@ export default function Home() {
       <div className="p-4 bg-blue-500 text-white">
         <h1 className="text-2xl font-bold">Hello, Tailwind CSS!</h1>
         <SignIn />
+        <WorldcoinVerificationPage/>
       </div>
     </main>
   );
