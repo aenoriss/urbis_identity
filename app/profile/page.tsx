@@ -47,7 +47,7 @@ export default function ProfileMockupPage() {
         setError("Error during authentication: " + getErrorMessage(error));
       }
     } else if (payload.status === "error") {
-      setError("Wallet authentication failed: " + payload.error);
+      // setError("Wallet authentication failed: " + payload.error);
     }
   };
 
