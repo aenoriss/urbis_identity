@@ -30,7 +30,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-pink-100 p-6 max-w-sm mx-auto h-[100vh] font-poppins">
+    <div className="bg-pink-100 p-6 mx-auto h-[100vh] font-poppins">
       <div className="flex flex-col items-center">
       <div className="bg-[#FF66C4] border-[2px] border-white w-full rounded-2xl relative overflow-hidden">
   <div className="absolute inset-0 z-0 top-7">
