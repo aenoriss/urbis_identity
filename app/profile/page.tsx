@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { MiniKit, ResponseEvent, PayCommandInput, Tokens, tokenToDecimals, MiniAppWalletAuthPayload, MiniAppPaymentPayload } from '@worldcoin/minikit-js';
+import { MiniKit, ResponseEvent, PayCommandInput, Tokens, tokenToDecimals } from '@worldcoin/minikit-js';
 
 export default function ProfileMockupPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
       setError("MiniKit is not installed");
@@ -23,7 +24,7 @@ export default function ProfileMockupPage() {
     };
   }, []);
 
-  const handleWalletAuthResponse = async (payload: MiniAppWalletAuthPayload) => {
+  const handleWalletAuthResponse = async (payload: any) => {
     if (payload.status === "success") {
       try {
         const response = await fetch("/api/complete-siwe", {
@@ -47,11 +48,11 @@ export default function ProfileMockupPage() {
         setError("Error during authentication: " + getErrorMessage(error));
       }
     } else if (payload.status === "error") {
-      // setError("Wallet authentication failed: " + payload.error);
+      setError("Wallet authentication failed: " + (payload.errorMessage || "Unknown error"));
     }
   };
 
-  const handlePaymentResponse = async (response: MiniAppPaymentPayload) => {
+  const handlePaymentResponse = async (response: any) => {
     if (response.status === "success") {
       try {
         const res = await fetch(`/api/confirm-payment`, {
@@ -70,7 +71,7 @@ export default function ProfileMockupPage() {
         setError("Error confirming payment: " + getErrorMessage(error));
       }
     } else if (response.status === "error") {
-      setError("Payment failed: " + response.error);
+      setError("Payment failed: " + (response.errorMessage || "Unknown error"));
     }
   };
 
