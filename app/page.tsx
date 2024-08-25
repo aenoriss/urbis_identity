@@ -4,10 +4,11 @@ import { VerifyBlock } from "@/components/Verify";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 gap-y-3">
-      <SignIn />
-      <VerifyBlock />
-      <PayBlock />
+    <main>
+      <div className="p-4 bg-blue-500 text-white">
+        <h1 className="text-2xl font-bold">Hello, Tailwind CSS!</h1>
+        <SignIn />
+      </div>
     </main>
   );
 }
