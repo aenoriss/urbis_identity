@@ -1,15 +1,14 @@
-"use client";
-
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { MiniKit, ResponseEvent, PayCommandInput, Tokens, tokenToDecimals, MiniAppWalletAuthSuccessPayload, MiniAppPaymentPayload } from '@worldcoin/minikit-js';
+import { MiniKit, ResponseEvent, PayCommandInput, Tokens, tokenToDecimals, MiniAppWalletAuthPayload, MiniAppPaymentPayload } from '@worldcoin/minikit-js';
 
 export default function ProfileMockupPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!MiniKit.isInstalled()) {
-      console.error("MiniKit is not installed");
+      setError("MiniKit is not installed");
       return;
     }
 
@@ -22,7 +21,7 @@ export default function ProfileMockupPage() {
     };
   }, []);
 
-  const handleWalletAuthResponse = async (payload: MiniAppWalletAuthSuccessPayload) => {
+  const handleWalletAuthResponse = async (payload: MiniAppWalletAuthPayload) => {
     if (payload.status === "success") {
       try {
         const response = await fetch("/api/complete-siwe", {
@@ -38,12 +37,15 @@ export default function ProfileMockupPage() {
         const result = await response.json();
         if (result.isValid) {
           setIsAuthenticated(true);
+          setError(null);
         } else {
-          console.error("Authentication failed:", result.message);
+          setError("Authentication failed: " + (result.message || "Unknown error"));
         }
       } catch (error) {
-        console.error("Error during authentication:", error);
+        setError("Error during authentication: " + error.message);
       }
+    } else if (payload.status === "error") {
+      setError("Wallet authentication failed: " + payload.error);
     }
   };
 
@@ -58,31 +60,46 @@ export default function ProfileMockupPage() {
         const payment = await res.json();
         if (payment.success) {
           console.log("Payment successful!");
-          // You might want to update the UI or state here to reflect the successful payment
+          setError(null);
         } else {
-          console.log("Payment failed or is still processing");
-          // Handle failed or processing payment
+          setError("Payment failed or is still processing");
         }
       } catch (error) {
-        console.error("Error confirming payment:", error);
+        setError("Error confirming payment: " + error.message);
       }
+    } else if (response.status === "error") {
+      setError("Payment failed: " + response.error);
     }
   };
 
   const getNonce = async () => {
     try {
       const res = await fetch(`/api/nonce`);
-      const { nonce } = await res.json();
-      return nonce;
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const text = await res.text();
+      try {
+        const { nonce } = JSON.parse(text);
+        return nonce;
+      } catch (e) {
+        console.error("Server response:", text);
+        throw new Error("Invalid JSON in server response");
+      }
     } catch (error) {
       console.error("Error fetching nonce:", error);
+      setError(`Error fetching nonce: ${error.message}`);
       throw error;
     }
   };
 
   const signInWithWallet = async () => {
     try {
+      setError(null);
       const nonce = await getNonce();
+      if (!nonce) {
+        throw new Error("Failed to obtain nonce");
+      }
       await MiniKit.commands.walletAuth({
         nonce: nonce,
         expirationTime: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
@@ -91,6 +108,7 @@ export default function ProfileMockupPage() {
       });
     } catch (error) {
       console.error("Error during sign in:", error);
+      setError(`Error during sign in: ${error.message}`);
     }
   };
 
@@ -116,10 +134,10 @@ export default function ProfileMockupPage() {
       if (MiniKit.isInstalled()) {
         await MiniKit.commands.pay(payload);
       } else {
-        console.error("MiniKit is not installed");
+        setError("MiniKit is not installed");
       }
     } catch (error) {
-      console.error("Error initiating payment:", error);
+      setError("Error initiating payment: " + error.message);
     }
   };
 
@@ -140,10 +158,15 @@ export default function ProfileMockupPage() {
         style={{ objectFit: "cover" }}
         priority
       />
-      <div className="absolute bottom-[7%] left-0 w-full p-4 z-10 flex justify-center">
+      <div className="absolute bottom-0 left-0 w-full p-4 z-10 flex flex-col items-center">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
         <button 
           onClick={handleContribute}
-          className="bg-white text-[#FF66C4] w-[75%] font-semibold py-3 px-6 rounded-xl"
+          className="bg-white text-[#FF66C4] font-semibold py-3 px-6 rounded-xl"
         >
           {isAuthenticated ? "Contribute Now!" : "Sign in to Contribute"}
         </button>
