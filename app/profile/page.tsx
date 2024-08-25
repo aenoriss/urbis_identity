@@ -44,7 +44,7 @@ export default function ProfileMockupPage() {
           setError("Authentication failed: " + (result.message || "Unknown error"));
         }
       } catch (error) {
-        setError("Error during authentication: " + error.message);
+        setError("Error during authentication: " + getErrorMessage(error));
       }
     } else if (payload.status === "error") {
       setError("Wallet authentication failed: " + payload.error);
@@ -67,7 +67,7 @@ export default function ProfileMockupPage() {
           setError("Payment failed or is still processing");
         }
       } catch (error) {
-        setError("Error confirming payment: " + error.message);
+        setError("Error confirming payment: " + getErrorMessage(error));
       }
     } else if (response.status === "error") {
       setError("Payment failed: " + response.error);
@@ -90,7 +90,7 @@ export default function ProfileMockupPage() {
       }
     } catch (error) {
       console.error("Error fetching nonce:", error);
-      setError(`Error fetching nonce: ${error.message}`);
+      setError(`Error fetching nonce: ${getErrorMessage(error)}`);
       throw error;
     }
   };
@@ -110,7 +110,7 @@ export default function ProfileMockupPage() {
       });
     } catch (error) {
       console.error("Error during sign in:", error);
-      setError(`Error during sign in: ${error.message}`);
+      setError(`Error during sign in: ${getErrorMessage(error)}`);
     }
   };
 
@@ -139,7 +139,7 @@ export default function ProfileMockupPage() {
         setError("MiniKit is not installed");
       }
     } catch (error) {
-      setError("Error initiating payment: " + error.message);
+      setError("Error initiating payment: " + getErrorMessage(error));
     }
   };
 
@@ -149,6 +149,12 @@ export default function ProfileMockupPage() {
     } else {
       initiatePayment();
     }
+  };
+
+  // Helper function to safely get error messages
+  const getErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) return error.message;
+    return String(error);
   };
 
   return (
